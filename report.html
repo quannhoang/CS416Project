@@ -120,6 +120,7 @@ svg.append("g")
     .on("mouseover", function(d) {
         d3.select(this)
             .attr("fill", "blue");
+        console.log(`d`, d);
         svg.append("rect")
             .attr("height", 20)
             .attr("width", 40)
