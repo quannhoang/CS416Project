@@ -117,9 +117,7 @@ svg.append("g")
     // Add tooltip when mouse over any bar
     // Tool tip is the sum of positive, hospitalized and death
     // Tool tip is positioned right on top of the bar
-    .on("mouseover", function(d) {
-        d3.select(this)
-            .attr("fill", "blue");
+    .on("mouseover", function(event, d) {
         console.log(`d`, d);
         svg.append("rect")
             .attr("height", 20)
@@ -131,7 +129,7 @@ svg.append("g")
             .attr("font-family", "sans-serif")
             .attr("font-size", "12px")
             .attr("font-weight", "bold")
-            .attr("fill", "white")
+            .attr("fill", "blue")
             .text(d => d.death + d.hospitalized + d.positive);
     }).on("mouseout", function(d) {
         d3.select(this)
