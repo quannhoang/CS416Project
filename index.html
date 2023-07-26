@@ -16,7 +16,7 @@ const marginBottom = 30;
 const marginLeft = 40;
 
 // Declare the x (horizontal position) scale.
-const data = await d3.csv("./uscovid19_2020_sum.csv");
+const data_all = await d3.csv("./uscovid19_2020_sum.csv");
 console.log(data);
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
     "Nov", "Dec"];
@@ -43,6 +43,17 @@ svg.append("g")
 svg.append("g")
     .attr("transform", `translate(${marginLeft},0)`)
     .call(d3.axisLeft(y));
+
+// Add the bars, one for each month, the bar height is the number of deaths for California in that month.
+svg.append("g")
+    .attr("fill", "steelblue")
+    .selectAll("rect")
+    .data(data_all)
+    .join("rect")
+    .attr("x", d => x(d.month))
+    .attr("y", d => y(d.deaths))
+    .attr("height", d => y(0) - y(d.deaths))
+    .attr("width", x.bandwidth());
 
 // Append the SVG element.
 container.append(svg.node());
