@@ -15,6 +15,21 @@ const marginRight = 20;
 const marginBottom = 30;
 const marginLeft = 40;
 
+const data_test = [
+    {month_name: "Jan", death: 0},
+    {month_name: "Feb", death: 1},
+    {month_name: "Mar", death: 2},
+    {month_name: "Apr", death: 3},
+    {month_name: "May", death: 4},
+    {month_name: "Jun", death: 5},
+    {month_name: "Jul", death: 6},
+    {month_name: "Aug", death: 7},
+    {month_name: "Sep", death: 8},
+    {month_name: "Oct", death: 9},
+    {month_name: "Nov", death: 10},
+    {month_name: "Dec", death: 11}
+]
+
 // Declare the x (horizontal position) scale.
 const data_all = await d3.csv("./uscovid19_2020_sum_all.csv");
 console.log(data_all);
@@ -51,10 +66,10 @@ svg.append("g")
     .data(data_all)
     .join("rect")
     .attr("x", d => x(d.month_name))
-    .attr("y", d => y(d.deaths))
+    .attr("y", d => y(d.death))
     .attr("height", d => {
-        if (d.deaths) {
-            return y(0) - y(d.deaths)
+        if (d.death) {
+            return y(0) - y(d.death)
         } else {
             return 0;
         }
