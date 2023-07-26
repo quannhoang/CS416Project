@@ -1,149 +1,297 @@
 <!DOCTYPE html>
 <head>
 </head>
-
+<select id="dropdown">
+</select>
 <div id="container" class="center"></div>
 <script src="./d3.v7.min.js"></script>
 <script type="module">
 
 
 // Declare the chart dimensions and margins.
-const width = 840;
+const width = 1040;
 const height = 500;
-const marginTop = 100;
-const marginRight = 20;
-const marginBottom = 30;
-const marginLeft = 40;
+const marginTop = 200;
+const marginRight = 220;
+const marginBottom = 60;
+const marginLeft = 80;
 
-const data_test = [
-    {month_name: "Jan", death: 0},
-    {month_name: "Feb", death: 1},
-    {month_name: "Mar", death: 2},
-    {month_name: "Apr", death: 3},
-    {month_name: "May", death: 4},
-    {month_name: "Jun", death: 5},
-    {month_name: "Jul", death: 6},
-    {month_name: "Aug", death: 7},
-    {month_name: "Sep", death: 8},
-    {month_name: "Oct", death: 9},
-    {month_name: "Nov", death: 10},
-    {month_name: "Dec", death: 11}
-]
+// const data_all = [
+//     {state_name: "Alaska", month_name: "Jan", death: 0, hospitalized: 0, positive: 0},
+//     {state_name: "Alaska",month_name: "Feb", death: 1, hospitalized: 2, positive: 2},
+//     {state_name: "Alaska",month_name: "Mar", death: 2, hospitalized: 20, positive: 40},
+//     {state_name: "Alaska",month_name: "Apr", death: 3, hospitalized: 40, positive: 150},
+//     {state_name: "Alaska",month_name: "May", death: 4, hospitalized: 50, positive: 250},
+//     {state_name: "Alaska",month_name: "Jun", death: 5, hospitalized: 60, positive: 300},
+//     {state_name: "Alaska",month_name: "Jul", death: 6, hospitalized: 70, positive: 350},
+//     {state_name: "Alaska",month_name: "Aug", death: 7, hospitalized: 80, positive: 450},
+//     {state_name: "Alaska",month_name: "Sep", death: 8.12312312312312, hospitalized: 70, positive: 550},
+//     {state_name: "Alaska",month_name: "Oct", death: 9, hospitalized: 60, positive: 550},
+//     {state_name: "Alaska",month_name: "Nov", death: 10, hospitalized: 80, positive: 550},
+//     {state_name: "Alaska",month_name: "Dec", death: 11, hospitalized: 70, positive: 550},
+//     {state_name: "Texas", month_name: "Jan", death: 0, hospitalized: 0, positive: 0},
+//     {state_name: "Texas",month_name: "Feb", death: 1, hospitalized: 2, positive: 2},
+//     {state_name: "Texas",month_name: "Mar", death: 2, hospitalized: 20, positive: 40},
+//     {state_name: "Texas",month_name: "Apr", death: 3, hospitalized: 40, positive: 150},
+//     {state_name: "Texas",month_name: "May", death: 4, hospitalized: 42, positive: 421},
+//     {state_name: "Texas",month_name: "Jun", death: 5, hospitalized: 60, positive: 300},
+//     {state_name: "Texas",month_name: "Jul", death: 6, hospitalized: 22, positive: 120},
+//     {state_name: "Texas",month_name: "Aug", death: 7, hospitalized: 80, positive: 450},
+//     {state_name: "Texas",month_name: "Sep", death: 8.12312312312312, hospitalized: 70, positive: 550},
+//     {state_name: "Texas",month_name: "Oct", death: 9, hospitalized: 60, positive: 550},
+//     {state_name: "Texas",month_name: "Nov", death: 10, hospitalized: 80, positive: 600},
+//     {state_name: "Texas",month_name: "Dec", death: 111, hospitalized: 70, positive: 550}
+// ]
 
-// Declare the x (horizontal position) scale.
+
 const data_all = await d3.csv("./uscovid19_2020_sum_all.csv");
-// Divide all months number by 1 million
+
+//Divide all months number by 1 million
 data_all.forEach(function(d) {
     d.death = d.death / 1000000;
     d.hospitalized = d.hospitalized / 1000000;
     d.positive = d.positive / 1000000;
 });
-console.log(data_all);
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
-    "Nov", "Dec"];
-const x = d3.scaleBand()
-    .domain(months)
-    .range([marginLeft, width - marginRight]);
-const y_max = 600; // Millions
-// Declare the y (vertical position) scale.
-const y = d3.scaleLinear()
-    .domain([0, y_max])
-    .range([height - marginBottom, marginTop]);
 
-// Create the SVG container.
-const svg = d3.create("svg")
-    .attr("width", width)
-    .attr("height", height);
 
-// Add the x-axis.
-svg.append("g")
-    .attr("transform", `translate(0,${height - marginBottom})`)
-    .call(d3.axisBottom(x));
+// Add a drop down menu to select state
+const all_states = [...new Set(data_all.map(d => d.state_name))];
+console.log('all_states', all_states);
+const state_options = d3.select("#dropdown")
+    .selectAll("option")
+    .data(all_states)
+    .enter()
+    .append("option")
+    .attr("value", d => d)
+    .text(d => d);
+console.log(state_options);
 
-// Add the y-axis.
-svg.append("g")
-    .attr("transform", `translate(${marginLeft},0)`)
-    .call(d3.axisLeft(y));
+// On change state_filter, update the chart
+d3.select("#dropdown").on("change", function () {
+    const state_filter = d3.select(this).property("value");
+    console.log(`selected state: `,state_filter);
+    displayStateChart(state_filter);
+});
 
-// Add the bars, one for each month, the bar height is the number of positive for that month
-svg.append("g")
-    .attr("fill", "steelblue")
-    .selectAll("rect")
-    .data(data_all)
-    .join("rect")
-    .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
-    .attr("y", d => y(d.positive))
-    .attr("height", d => {
-        if (d.positive) {
-            return y(0) - y(d.positive)
-        } else {
-            return 0;
-        }
-    })
-    .attr("width", x.bandwidth() * 2 / 3);
-// Add another bar positioned right on top of the positive bar, the bar height is the number of hospitalized for that month
-svg.append("g")
-    .attr("fill", "orange")
-    .selectAll("rect")
-    .data(data_all)
-    .join("rect")
-    .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
-    .attr("y", d => y(d.hospitalized + d.positive))
-    .attr("height", d => {
-        if (d.hospitalized) {
-            return y(0) - y(d.hospitalized)
-        } else {
-            return 0;
-        }
-    })
-    // set width to the bandwidth of the x scale, but reduced by 1/3
-    .attr("width", x.bandwidth() * 2 / 3);
-// Add another bar positioned right on top of the hospitalized bar, the bar height is the number of death for that month
-svg.append("g")
-    .attr("fill", "red")
-    .selectAll("rect")
-    .data(data_all)
-    .join("rect")
-    .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
-    .attr("y", d => y(d.death + d.hospitalized + d.positive))
-    .attr("height", d => {
-        if (d.death) {
-            return y(0) - y(d.death)
-        } else {
-            return 0;
-        }
-    })
-    .attr("width", x.bandwidth() * 2 / 3)
-    // Add tooltip when mouse over any bar
-    // Tool tip is the sum of positive, hospitalized and death
-    // Tool tip is positioned right on top of the bar
-    .on("mouseover", function(event, d) {
-        console.log(`d`, d);
-        svg.append("rect")
-            .attr("height", 80)
-            .attr("width", 200)
-            .attr("id", "tooltip")
-            .attr("x", x(d.month_name) + x.bandwidth())
-            .attr("y", (y((d.death + d.hospitalized + d.positive) - 10)/2))
-            .attr("fill", "blue")
-        svg.append("text")
-            .attr("id", "tooltiptext")
-            .attr("fill", "white")
-            .attr("text-anchor", "middle")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "12px")
-            .attr("font-weight", "bold")
-            .attr("x", x(d.month_name) + x.bandwidth())
-            .attr("y", (y((d.death + d.hospitalized + d.positive) - 10)/2))
-            // Add the sum of positive, hospitalized and death
-            .text(`${d.month_name}: ${d.death + d.hospitalized + d.positive} millions`);
-    }).on("mouseout", function(event, d) {
-        d3.select(this)
-            .attr("fill", "red");
-        d3.select("#tooltip").remove();
+function displayStateChart (state_filter) {
+    // first empty the container
+    d3.select("#container").selectAll("*").remove();
+    let data_filter = data_all.filter(function(d) {
+        return d.state_name == state_filter;
     });
-    ;
-// Append the SVG element.
-container.append(svg.node());
+    console.log(data_all);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
+        "Nov", "Dec"];
+    
+    // Declare the x (horizontal position) scale.
+    const x = d3.scaleBand()
+        .domain(months)
+        .range([marginLeft, width - marginRight]);
+    const y_max = 600.00; // Millions
+    // Declare the y (vertical position) scale.
+    const y = d3.scaleLinear()
+        .domain([0, y_max])
+        .range([height - marginBottom, marginTop]);
+
+    // Create the SVG container.
+    const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Add the x-axis.
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x));
+    // Add x-axis label
+    svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", (width - marginRight)/2 + 50)
+        .attr("y", height - marginBottom + 40)
+        .attr("font-size", "15px")
+        .text("Month");
+
+    // Add the y-axis.
+    svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y));
+    // Add y-axis label
+    svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -height/2)
+        .attr("y", marginLeft - 50)
+        .attr("font-size", "15px")
+        .attr("transform", "rotate(-90)")
+        .text("Number of cases (millions)");
+
+    // Add the bars, one for each month, the bar height is the number of positive for that month
+    svg.append("g")
+        .attr("fill", "steelblue")
+        .selectAll("rect")
+        .data(data_filter)
+        .join("rect")
+        .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
+        .attr("y", d => y(d.positive))
+        .attr("height", d => {
+            if (d.positive) {
+                return y(0) - y(d.positive)
+            } else {
+                return 0;
+            }
+        })
+        .attr("width", x.bandwidth() * 2 / 3)
+        // Add tooltip when mouse over any bar
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the bar
+        .on("mouseover", function(event, d) {
+            console.log(`d`, d);
+            svg.append("rect")
+                .attr("height", 40)
+                .attr("width",135)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) + x.bandwidth()/3 - 10)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 43))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 25))
+                // Add the sum of positive, hospitalized and death
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "steelblue")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 10))
+                // Add the sum of positive, hospitalized and death
+                .text(`Positive: ${d.positive.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    // Add another bar positioned right on top of the positive bar, the bar height is the number of hospitalized for that month
+    svg.append("g")
+        .attr("fill", "orange")
+        .selectAll("rect")
+        .data(data_filter)
+        .join("rect")
+        .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
+        .attr("y", d => y(d.hospitalized + d.positive))
+        .attr("height", d => {
+            if (d.hospitalized) {
+                return y(0) - y(d.hospitalized)
+            } else {
+                return 0;
+            }
+        })
+        // set width to the bandwidth of the x scale, but reduced by 1/3
+        .attr("width", x.bandwidth() * 2 / 3)
+        // Add tooltip when mouse over any bar
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the bar
+        .on("mouseover", function(event, d) {
+            console.log(`d`, d);
+            svg.append("rect")
+                .attr("height", 40)
+                .attr("width",150)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) + x.bandwidth()/3 - 10)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 43))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 25))
+                // Add the sum of positive, hospitalized and death
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 10))
+                // Add the sum of positive, hospitalized and death
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    // Add another bar positioned right on top of the hospitalized bar, the bar height is the number of death for that month
+    svg.append("g")
+        .attr("fill", "red")
+        .selectAll("rect")
+        .data(data_filter)
+        .join("rect")
+        .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
+        .attr("y", d => y(d.death + d.hospitalized + d.positive))
+        .attr("height", d => {
+            if (d.death) {
+                return y(0) - y(d.death)
+            } else {
+                return 0;
+            }
+        })
+        .attr("width", x.bandwidth() * 2 / 3)
+        // Add tooltip when mouse over any bar
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the bar
+        .on("mouseover", function(event, d) {
+            console.log(`d`, d);
+            svg.append("rect")
+                .attr("height", 40)
+                .attr("width",130)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) + x.bandwidth()/3 - 10)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 43))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 25))
+                // Add the sum of positive, hospitalized and death
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 10))
+                // Add the sum of positive, hospitalized and death
+                .text(`Deaths: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+        
+    // Append the SVG element.
+    container.append(svg.node());
+};
+displayStateChart("Texas");
 
 </script>
