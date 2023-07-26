@@ -44,7 +44,7 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const x = d3.scaleBand()
     .domain(months)
     .range([marginLeft, width - marginRight]);
-const y_max = 510; // Millions
+const y_max = 600; // Millions
 // Declare the y (vertical position) scale.
 const y = d3.scaleLinear()
     .domain([0, y_max])
@@ -92,6 +92,22 @@ svg.append("g")
     .attr("height", d => {
         if (d.hospitalized) {
             return y(0) - y(d.hospitalized)
+        } else {
+            return 0;
+        }
+    })
+    .attr("width", x.bandwidth());
+// Add another bar positioned right on top of the hospitalized bar, the bar height is the number of death for that month
+svg.append("g")
+    .attr("fill", "red")
+    .selectAll("rect")
+    .data(data_all)
+    .join("rect")
+    .attr("x", d => x(d.month_name))
+    .attr("y", d => y(d.death + d.hospitalized + d.positive))
+    .attr("height", d => {
+        if (d.death) {
+            return y(0) - y(d.death)
         } else {
             return 0;
         }
