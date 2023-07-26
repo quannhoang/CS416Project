@@ -44,7 +44,7 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const x = d3.scaleBand()
     .domain(months)
     .range([marginLeft, width - marginRight]);
-const y_max = 53; // Milions
+const y_max = 100; // Milions
 // Declare the y (vertical position) scale.
 const y = d3.scaleLinear()
     .domain([0, y_max])
@@ -88,7 +88,7 @@ svg.append("g")
     .data(data_all)
     .join("rect")
     .attr("x", d => x(d.month_name))
-    .attr("y", d => y(d.hospitalized))
+    .attr("y", d => y(d.hospitalized + d.positive))
     .attr("height", d => {
         if (d.hospitalized) {
             return y(0) - y(d.hospitalized)
