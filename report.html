@@ -32,6 +32,12 @@ const data_test = [
 
 // Declare the x (horizontal position) scale.
 const data_all = await d3.csv("./uscovid19_2020_sum_all.csv");
+// Divide all months number by 1 million
+data_all.forEach(function(d) {
+    d.death = d.death / 1000000;
+    d.hospitalized = d.hospitalized / 1000000;
+    d.positibe = d.positibe / 1000000;
+});
 console.log(data_all);
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
     "Nov", "Dec"];
