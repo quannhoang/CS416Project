@@ -126,7 +126,7 @@ svg.append("g")
             .attr("x", x(d.month_name) + x.bandwidth())
             .attr("y", (y((d.death + d.hospitalized + d.positive) - 10)/2))
             .attr("fill", "blue")
-        svg.append("text")
+        svg.append("div")
             .attr("id", "tooltiptext")
             .attr("fill", "white")
             .attr("text-anchor", "middle")
@@ -135,6 +135,8 @@ svg.append("g")
             .attr("font-weight", "bold")
             .attr("x", x(d.month_name) + x.bandwidth())
             .attr("y", (y((d.death + d.hospitalized + d.positive) - 10)/2))
+            // Add the sum of positive, hospitalized and death
+            .text(`${d.month_name}: ${d.death + d.hospitalized + d.positive} millions`);
     }).on("mouseout", function(event, d) {
         d3.select(this)
             .attr("fill", "red");
