@@ -50,7 +50,7 @@ svg.append("g")
     .selectAll("rect")
     .data(data_all)
     .join("rect")
-    .attr("x", d => x(d.month))
+    .attr("x", d => x(d.month_name))
     .attr("y", d => y(d.deaths))
     .attr("height", d => {
         if (d.deaths) {
