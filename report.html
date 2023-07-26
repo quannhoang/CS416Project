@@ -113,7 +113,22 @@ svg.append("g")
             return 0;
         }
     })
-    .attr("width", x.bandwidth() * 2 / 3);
+    .attr("width", x.bandwidth() * 2 / 3)
+    // Add tooltip when mouse over any bar
+    .on("mouseover", function(d) {
+        d3.select(this)
+            .attr("fill", "black");
+        svg.append("text")
+            .attr("id", "tooltip")
+            .attr("x", d => x(d.month_name) + x.bandwidth() * 1 / 6)
+            .attr("y", d => y(d.death + d.hospitalized + d.positive) - 10)
+            .attr("text-anchor", "middle")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "12px")
+            .attr("font-weight", "bold")
+            .attr("fill", "black")
+            .text(d => d.death + d.hospitalized + d.positive);
+    });
 // Append the SVG element.
 container.append(svg.node());
 
