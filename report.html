@@ -80,7 +80,7 @@ svg.append("g")
             return 0;
         }
     })
-    .attr("width", x.bandwidth());
+    .attr("width", x.bandwidth() * 2 / 3);
 // Add another bar positioned right on top of the positive bar, the bar height is the number of hospitalized for that month
 svg.append("g")
     .attr("fill", "orange")
@@ -96,7 +96,8 @@ svg.append("g")
             return 0;
         }
     })
-    .attr("width", x.bandwidth());
+    // set width to the bandwidth of the x scale, but reduced by 1/3
+    .attr("width", x.bandwidth() * 2 / 3);
 // Add another bar positioned right on top of the hospitalized bar, the bar height is the number of death for that month
 svg.append("g")
     .attr("fill", "red")
@@ -112,7 +113,7 @@ svg.append("g")
             return 0;
         }
     })
-    .attr("width", x.bandwidth());
+    .attr("width", x.bandwidth() * 2 / 3);
 // Append the SVG element.
 container.append(svg.node());
 
