@@ -52,7 +52,13 @@ svg.append("g")
     .join("rect")
     .attr("x", d => x(d.month))
     .attr("y", d => y(d.deaths))
-    .attr("height", d => y(0) - y(d.deaths))
+    .attr("height", d => {
+        if (d.deaths) {
+            return y(0) - y(d.deaths)
+        } else {
+            return 0;
+        }
+    })
     .attr("width", x.bandwidth());
 
 // Append the SVG element.
