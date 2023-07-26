@@ -36,7 +36,7 @@ const data_all = await d3.csv("./uscovid19_2020_sum_all.csv");
 data_all.forEach(function(d) {
     d.death = d.death / 1000000;
     d.hospitalized = d.hospitalized / 1000000;
-    d.positibe = d.positibe / 1000000;
+    d.positive = d.positive / 1000000;
 });
 console.log(data_all);
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
@@ -65,23 +65,38 @@ svg.append("g")
     .attr("transform", `translate(${marginLeft},0)`)
     .call(d3.axisLeft(y));
 
-// Add the bars, one for each month, the bar height is the number of deaths for California in that month.
+// Add the bars, one for each month, the bar height is the number of positive for that month
 svg.append("g")
     .attr("fill", "steelblue")
     .selectAll("rect")
     .data(data_all)
     .join("rect")
     .attr("x", d => x(d.month_name))
-    .attr("y", d => y(d.death))
+    .attr("y", d => y(d.positive))
     .attr("height", d => {
-        if (d.death) {
-            return y(0) - y(d.death)
+        if (d.positive) {
+            return y(0) - y(d.positive)
         } else {
             return 0;
         }
     })
     .attr("width", x.bandwidth());
-
+// Add another bar positioned right on top of the positive bar, the bar height is the number of hospitalized for that month
+svg.append("g")
+    .attr("fill", "orange")
+    .selectAll("rect")
+    .data(data_all)
+    .join("rect")
+    .attr("x", d => x(d.month_name))
+    .attr("y", d => y(d.hospitalized))
+    .attr("height", d => {
+        if (d.hospitalized) {
+            return y(0) - y(d.hospitalized)
+        } else {
+            return 0;
+        }
+    })
+    .attr("width", x.bandwidth());
 // Append the SVG element.
 container.append(svg.node());
 
