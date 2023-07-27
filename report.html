@@ -6,7 +6,7 @@
         position: relative;
         top: 60px;
         left: 100px;
-        width: 100px;
+        width: 200px;
     }
     #intro {
         width: 100%;
@@ -195,7 +195,7 @@ function displayStateChart (input_state_filter) {
     const x = d3.scaleBand()
         .domain(months)
         .range([marginLeft, width - marginRight]);
-    const y_max = 600.00; // Millions
+    const y_max = 30.00; // Millions
     // Declare the y (vertical position) scale.
     const y = d3.scaleLinear()
         .domain([0, y_max])
