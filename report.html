@@ -2,15 +2,21 @@
 <head>
 </head>
 <style>
-    #stateDropdown {
-        position: relative;
-        top: 60px;
-        left: 100px;
-        width: 200px;
-    }
     #intro {
         width: 100%;
         height: 300px;
+    }
+    #stateDropdown {
+        position: relative;
+        top: 60px;
+        left: 80px;
+        width: 200px;
+    }
+    #monthDropdown {
+        position: relative;
+        top: 60px;
+        left: 80px;
+        width: 200px;
     }
     #navigation button {
         position: relative;
@@ -62,6 +68,11 @@
 <div id="fullYearArea">
     <div id="fullYearChart" class="center"></div>
 </div>
+<div id="byMonthArea">
+    <select id="monthDropdown" >
+    </select>
+    <div id="byMonthChart" class="center"></div>
+</div>
 <div id="byStateArea">
     <select id="stateDropdown" >
     </select>
@@ -75,12 +86,23 @@
 
 // Declare the chart dimensions and margins.
 const width = 1040;
-const height = 500;
+const height = 600;
 const marginTop = 100;
 const marginRight = 220;
-const marginBottom = 60;
+const marginBottom = 160;
 const marginLeft = 80;
-
+const all_states = ['Alaska', 'Alabama', 'Arkansas', 'American Samoa', 'Arizona',
+       'California', 'Colorado', 'Connecticut', 'District of Columbia',
+       'Delaware', 'Florida', 'Georgia', 'Guam', 'Hawaii', 'Iowa',
+       'Idaho', 'Illinois', 'Indiana', 'Kansas', 'Kentucky', 'Louisiana',
+       'Massachusetts', 'Maryland', 'Maine', 'Michigan', 'Minnesota',
+       'Missouri', 'Northern Mariana Islands', 'Mississippi', 'Montana',
+       'North Carolina', 'North Dakota', 'Nebraska', 'New Hampshire',
+       'New Jersey', 'New Mexico', 'Nevada', 'New York', 'Ohio',
+       'Oklahoma', 'Oregon', 'Pennsylvania', 'Puerto Rico',
+       'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee',
+       'Texas', 'Utah', 'Virginia', 'Virgin Islands', 'Vermont',
+       'Washington', 'Wisconsin', 'West Virginia', 'Wyoming'];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
         "Nov", "Dec"];
 
@@ -111,6 +133,21 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 //     {state_name: "Texas",month_name: "Dec", death: 111, hospitalized: 70, positive: 550}
 // ]
 
+// const data_all = [
+//     {month_name: "Jan", death: 0, hospitalized: 0, positive: 0},
+//     {month_name: "Feb", death: 1, hospitalized: 2, positive: 2},
+//     {month_name: "Mar", death: 2, hospitalized: 20, positive: 40},
+//     {month_name: "Apr", death: 3, hospitalized: 40, positive: 150},
+//     {month_name: "May", death: 4, hospitalized: 50, positive: 250},
+//     {month_name: "Jun", death: 5, hospitalized: 60, positive: 300},
+//     {month_name: "Jul", death: 6, hospitalized: 70, positive: 350},
+//     {month_name: "Aug", death: 7, hospitalized: 80, positive: 450},
+//     {month_name: "Sep", death: 8.12312312312312, hospitalized: 70, positive: 550},
+//     {month_name: "Oct", death: 9, hospitalized: 60, positive: 550},
+//     {month_name: "Nov", death: 10, hospitalized: 80, positive: 550},
+//     {month_name: "Dec", death: 11, hospitalized: 70, positive: 550}
+// ]
+
 
 const data_states = await d3.csv("./uscovid19_2020_states.csv");
 
@@ -121,17 +158,45 @@ data_states.forEach(function(d) {
     d.positive = d.positive / 1000000;
 });
 
+const data_all = await d3.csv("./uscovid19_2020_all.csv");
 
-// Onload display the state chart
-displayStateChart("Alaska");
+//Divide all months number by 1 million
+data_all.forEach(function(d) {
+    d.death = d.death / 1000000;
+    d.hospitalized = d.hospitalized / 1000000;
+    d.positive = d.positive / 1000000;
+});
 
+
+// On change month_filter, update the chart
+d3.select("#byMonthChart").selectAll("*").remove();
+    d3.select("#monthDropdown")
+        .selectAll("option")
+        .data(months)
+        .enter()
+        .append("option")
+        .attr("value", d => d)
+        .text(d => d);
+d3.select("#monthDropdown").on("change", function () {
+    const month_filter = d3.select(this).property("value");
+    console.log(`selected month: `,month_filter);
+    displayMonthChart(month_filter);
+});
 
 // On change state_filter, update the chart
+d3.select("#stateDropdown")
+        .selectAll("option")
+        .data(all_states)
+        .enter()
+        .append("option")
+        .attr("value", d => d)
+        .text(d => d);
 d3.select("#stateDropdown").on("change", function () {
     const state_filter = d3.select(this).property("value");
     console.log(`selected state: `,state_filter);
     displayStateChart(state_filter);
 });
+
 
 d3.select("#fullYearButton").on("click", function() {
     d3.select("#fullYearArea").style("display", "block");
@@ -168,16 +233,562 @@ d3.select("#byStateButton").on("click", function () {
     d3.select("#byMonthButton").attr("class", "");
 });
 
-function displayStateChart (input_state_filter) {
-    const all_states = [...new Set(data_states.map(d => d.state_name))];
-    console.log('all_states', all_states);
-    d3.select("#stateDropdown")
-        .selectAll("option")
-        .data(all_states)
+// Onload display the charts
+displayFullYearChart();
+displayMonthChart();
+displayStateChart("Alaska");
+
+function displayFullYearChart () {
+    d3.select("#fullYearArea").style("display", "block");
+    d3.select("#byMonthArea").style("display", "none");
+    d3.select("#byStateArea").style("display", "none");
+
+    // first empty the fullYearChart
+    d3.select("#fullYearChart").selectAll("*").remove();
+    console.log(data_all);
+
+    // Declare the x (horizontal position) scale.
+    const x = d3.scaleBand()
+        .domain(months)
+        .range([marginLeft, width - marginRight]);
+    const y_max = 600; // Milions
+    // Declare the y (vertical position) scale.
+    const y = d3.scaleLinear()
+        .domain([0, y_max])
+        .range([height - marginBottom, marginTop]);
+
+    // Create the SVG container.
+    const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Add the x-axis.
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x));
+    // Add x-axis label
+    svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", (width - marginRight)/2 + 50)
+        .attr("y", height - marginBottom + 40)
+        .attr("font-size", "15px")
+        .text("Month");
+
+    // Add the y-axis.
+    svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y));
+    // Add y-axis label
+    svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -(height/3))
+        .attr("y", marginLeft - 50)
+        .attr("font-size", "15px")
+        .attr("transform", "rotate(-90)")
+        .text("Number of cases (millions)");
+
+    // Add line for death
+    svg.append("path")
+        .datum(data_all)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+            .x(function(d) { return x(d.month_name) + x.bandwidth()/2 })
+            .y(function(d) { return y(d.death) })
+        );
+    // Add circle for death
+    svg.selectAll("dot")
+        .data(data_all)
         .enter()
-        .append("option")
-        .attr("value", d => d)
-        .text(d => d);
+        .append("circle")
+        .attr("cx", function(d) { return x(d.month_name) + x.bandwidth()/2 })
+        .attr("cy", function(d) { return y(d.death) })
+        .attr("r", 6)
+        .attr("fill", "red")
+                // Add tooltip when mouse over any circle
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the circle
+        .on("mouseover", function(event, d){
+            svg.append("rect")
+                .attr("height", 75)
+                .attr("width",145)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) +40)
+                .attr("y", y(d.death) - 30)
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death) -10))
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "steelblue")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death )+5))
+                .text(`Positive: ${d.positive.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death)+20))
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death)+35))
+                .text(`Death: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    
+    // Add line for hospitalized
+    svg.append("path")
+        .datum(data_all)
+        .attr("fill", "none")
+        .attr("stroke", "orange")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+            .x(function(d) { return x(d.month_name) + x.bandwidth()/2 })
+            .y(function(d) { return y(d.hospitalized) })
+        );
+    // Add circle for hospitalized
+    svg.selectAll("dot")
+        .data(data_all)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) { return x(d.month_name) + x.bandwidth()/2 })
+        .attr("cy", function(d) { return y(d.hospitalized) })
+        .attr("r", 6)
+        .attr("fill", "orange")
+        // Add tooltip when mouse over any circle
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the circle
+        .on("mouseover", function(event, d){
+            svg.append("rect")
+                .attr("height", 75)
+                .attr("width",145)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) +40)
+                .attr("y", y(d.death + d.hospitalized) - 30)
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized) -10))
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "steelblue")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized)+5))
+                .text(`Positive: ${d.positive.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized)+20))
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized)+35))
+                .text(`Death: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    // Add line for positive
+    svg.append("path")
+        .datum(data_all)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+            .x(function(d) { return x(d.month_name) + x.bandwidth()/2 })
+            .y(function(d) { return y(d.positive) })
+        )
+    // Add circle for positive
+    svg.selectAll("dot")
+        .data(data_all)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) { return x(d.month_name) + x.bandwidth()/2 })
+        .attr("cy", function(d) { return y(d.positive) })
+        .attr("r", 6)
+        .attr("fill", "steelblue")
+        // Add tooltip when mouse over any circle
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the circle
+        .on("mouseover", function(event, d){
+            svg.append("rect")
+                .attr("height", 75)
+                .attr("width",145)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) +40)
+                .attr("y", y(d.death + d.hospitalized + d.positive))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized + d.positive)+20))
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "steelblue")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized + d.positive)+35))
+                .text(`Positive: ${d.positive.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized + d.positive)+50))
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death + d.hospitalized + d.positive)+65))
+                .text(`Death: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    
+    // Add legend
+    svg.append("circle")
+        .attr("r", 6)
+        .attr("cx", width - marginRight + 20)
+        .attr("cy", marginTop + 20)
+        .attr("fill", "red");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 40)
+        .attr("y", marginTop + 23)
+        .text("Deaths");
+    svg.append("circle")
+        .attr("r", 6)
+        .attr("cx", width - marginRight + 20)
+        .attr("cy", marginTop + 40)
+        .attr("fill", "orange");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 40)
+        .attr("y", marginTop + 43)
+        .text("Hospitalized");
+    svg.append("circle")
+        .attr("r", 6)
+        .attr("cx", width - marginRight + 20)
+        .attr("cy", marginTop + 60)
+        .attr("fill", "steelblue");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 40)
+        .attr("y", marginTop + 63)
+        .text("Positive");
+
+    
+    fullYearChart.append(svg.node());
+};
+
+function displayMonthChart (input_month_filter) {
+    // first empty the byMonthChart
+    d3.select("#byMonthChart").selectAll("*").remove();
+    let month_filter
+    if (!input_month_filter) {
+        month_filter = "Dec";
+    } else {
+        month_filter = input_month_filter;
+    }
+    // filter data_all by month
+    let data_filter = data_states.filter(function(d) {
+        return d.month_name === month_filter;
+    });
+    // sort data_filter by total number of positive, hospitalized and death
+    data_filter.sort(function(a, b) {
+        return (a.positive + a.hospitalized + a.death) - (b.positive + b.hospitalized + b.death);
+    });
+    console.log('sorted month data', data_filter);
+    // Get all sorted state names
+    const sorted_states = data_filter.map(d => d.state_name);
+    // Declare the x (horizontal position) scale.
+
+    const x = d3.scaleBand()
+        .domain(sorted_states)
+        .range([marginLeft, width - marginRight]);
+    // Find y_max by finding the max of positive, hospitalized and death
+    const y_max = d3.max(data_filter, function(d) {
+        return d.positive + d.hospitalized + d.death;
+    });
+    // Declare the y (vertical position) scale.
+    const y = d3.scaleLinear()
+        .domain([0, y_max])
+        .range([height - marginBottom, marginTop]);
+
+    // Create the SVG container.
+    const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Add the x-axis.
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x));
+    // Add x-axis label
+    svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", (width - marginRight)/2 + 50)
+        .attr("y", height - marginBottom + 40)
+        .attr("font-size", "15px")
+        .text("State");
+
+    // Add the y-axis.
+    svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y));
+    // Add y-axis label
+    svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -(height/3))
+        .attr("y", marginLeft - 50)
+        .attr("font-size", "15px")
+        .attr("transform", "rotate(-90)")
+        .text("Number of cases (millions)");
+    
+    // Add the bars, one for each month, the bar height is the number of positive for that month
+    svg.append("g")
+        .attr("fill", "steelblue")
+        .selectAll("rect")
+        .data(data_filter)
+        .join("rect")
+        .attr("x", d => x(d.state_name) + x.bandwidth() * 1 / 6)
+        .attr("y", d => y(d.positive))
+        .attr("height", d => {
+            if (d.positive) {
+                return y(0) - y(d.positive)
+            } else {
+                return 0;
+            }
+        })
+        .attr("width", x.bandwidth() * 2 / 3)
+        // Add tooltip when mouse over any bar
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the bar
+        .on("mouseover", function(event, d) {
+            svg.append("rect")
+                .attr("height", 40)
+                .attr("width",135)
+                .attr("id", "tooltip")
+                .attr("x", x(d.state_name) + x.bandwidth()/3 - 10)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 43))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.state_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 25))
+                // Add the sum of positive, hospitalized and death
+                .text(`State: ${d.state_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "steelblue")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.state_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 10))
+                // Add the sum of positive, hospitalized and death
+                .text(`Positive: ${d.positive.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    // Add another bar positioned right on top of the positive bar, the bar height is the number of hospitalized for that month
+    svg.append("g")
+        .attr("fill", "orange")
+        .selectAll("rect")
+        .data(data_filter)
+        .join("rect")
+        .attr("x", d => x(d.state_name) + x.bandwidth() * 1 / 6)
+        .attr("y", d => y(d.hospitalized + d.positive))
+        .attr("height", d => {
+            if (d.hospitalized) {
+                return y(0) - y(d.hospitalized)
+            } else {
+                return 0;
+            }
+        })
+        // set width to the bandwidth of the x scale, but reduced by 1/3
+        .attr("width", x.bandwidth() * 2 / 3)
+        // Add tooltip when mouse over any bar
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the bar
+        .on("mouseover", function(event, d) {
+            console.log(`d`, d);
+            svg.append("rect")
+                .attr("height", 40)
+                .attr("width",150)
+                .attr("id", "tooltip")
+                .attr("x", x(d.state_name) + x.bandwidth()/3 - 10)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 43))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.state_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 25))
+                // Add the sum of positive, hospitalized and death
+                .text(`State: ${d.state_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.state_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 10))
+                // Add the sum of positive, hospitalized and death
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    // Add another bar positioned right on top of the hospitalized bar, the bar height is the number of death for that month
+    svg.append("g")
+        .attr("fill", "red")
+        .selectAll("rect")
+        .data(data_filter)
+        .join("rect")
+        .attr("x", d => x(d.state_name) + x.bandwidth() * 1 / 6)
+        .attr("y", d => y(d.death + d.hospitalized + d.positive))
+        .attr("height", d => {
+            if (d.death) {
+                return y(0) - y(d.death)
+            } else {
+                return 0;
+            }
+        })
+        .attr("width", x.bandwidth() * 2 / 3)
+        // Add tooltip when mouse over any bar
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the bar
+        .on("mouseover", function(event, d) {
+            console.log(`d`, d);
+            svg.append("rect")
+                .attr("height", 40)
+                .attr("width",130)
+                .attr("id", "tooltip")
+                .attr("x", x(d.state_name) + x.bandwidth()/3 - 10)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 43))
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.state_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 25))
+                // Add the sum of positive, hospitalized and death
+                .text(`State: ${d.state_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.state_name) + x.bandwidth()/3)
+                .attr("y", (y(d.death + d.hospitalized + d.positive) - 10))
+                // Add the sum of positive, hospitalized and death
+                .text(`Deaths: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        });
+    
+    byMonthChart.append(svg.node());
+    
+};
+
+function displayStateChart (input_state_filter) {
+    // const all_states = [...new Set(data_states.map(d => d.state_name))];
+    // console.log('all_states', all_states);
+
     // first empty the byStateChart
     d3.select("#byStateChart").selectAll("*").remove();
     let state_filter = input_state_filter;
@@ -231,7 +842,7 @@ function displayStateChart (input_state_filter) {
     svg.append("text")
         .attr("class", "y label")
         .attr("text-anchor", "end")
-        .attr("x", -height/2)
+        .attr("x", -(height/3))
         .attr("y", marginLeft - 50)
         .attr("font-size", "15px")
         .attr("transform", "rotate(-90)")
@@ -257,7 +868,6 @@ function displayStateChart (input_state_filter) {
         // Tool tip is the sum of positive, hospitalized and death
         // Tool tip is positioned right on top of the bar
         .on("mouseover", function(event, d) {
-            console.log(`d`, d);
             svg.append("rect")
                 .attr("height", 40)
                 .attr("width",135)
@@ -400,7 +1010,55 @@ function displayStateChart (input_state_filter) {
             d3.select("#tooltip").remove();
             d3.selectAll(".tooltiptext").remove();
         });
-        
+    // Add legend
+
+
+    svg.append("rect")
+        .attr("height", 20)
+        .attr("width", 20)
+        .attr("x", width - marginRight + 20)
+        .attr("y", marginTop + 20)
+        .attr("fill", "red");
+    svg.append("text")
+        .attr("class", "legend")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 50)
+        .attr("y", marginTop + 35)
+        .text("Deaths");
+    svg.append("rect")
+        .attr("height", 20)
+        .attr("width", 20)
+        .attr("x", width - marginRight + 20)
+        .attr("y", marginTop + 50)
+        .attr("fill", "orange");
+    svg.append("text")
+        .attr("class", "legend")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 50)
+        .attr("y", marginTop + 65)
+        .text("Hospitalized");
+        svg.append("rect")
+        .attr("height", 20)
+        .attr("width", 20)
+        .attr("x", width - marginRight + 20)
+        .attr("y", marginTop + 80)
+        .attr("fill", "steelblue");
+    svg.append("text")
+        .attr("class", "legend")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 50)
+        .attr("y", marginTop + 95)
+        .text("Positive");
+
     // Append the SVG element.
     byStateChart.append(svg.node());
 };
