@@ -195,7 +195,11 @@ function displayStateChart (input_state_filter) {
     const x = d3.scaleBand()
         .domain(months)
         .range([marginLeft, width - marginRight]);
-    const y_max = 30.00; // Millions
+    // Find the max sum of positive, hospitalized and death
+    const data_y_max = d3.max(data_filter, function(d) {
+        return d.positive + d.hospitalized + d.death;
+    });
+    const y_max = data_y_max;
     // Declare the y (vertical position) scale.
     const y = d3.scaleLinear()
         .domain([0, y_max])
