@@ -1405,8 +1405,8 @@ d3.select("#byMonthStateChart").selectAll("*").remove();
             .attr("font-weight", "bold")
             .attr("x", width/2 - 80)
             .attr("y", height/7 + 20)
-            // Add the sum of positive, hospitalized and death
-            .text(`${d.data.key}: ${d.data.value.toFixed(2)} millions (${(d.data.value/data_sum*100).toFixed(2)}%)`);
+            // Add the sum of positive, hospitalized and death, capitialize the first letter
+            .text(`${d.data.key.charAt[0].toUpperCase()}: ${d.data.value.toFixed(2)} millions (${(d.data.value/data_sum*100).toFixed(2)}%)`);
     }).on("mouseout", function(event, d) {
         // no stroke
         d3.select(this).attr("stroke", "none");
