@@ -1592,6 +1592,82 @@ function displayStateChart (input_state_filter) {
         .on("click", function(event, d) {
             monthStateDrillDown(d.month_name, d.state_name);
         });
+    // Add annotation
+    // Add an Annotation in between April and May, which is a vertical line
+    // On top of the line is a horizontal line
+    // On top of the horizontal line is a text
+    const y_top = y(y_max*0.95)
+    const y_mid = y(y_max*0.85)
+    const y_bottom = y(y_max*0.75) 
+    svg.append("line")
+        .attr("x1", x("Mar") + x.bandwidth()/2)
+        .attr("y1", y(0))
+        .attr("x2",  x("Mar") + x.bandwidth()/2)
+        .attr("y2", y_top)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1",  x("Mar") + x.bandwidth()/2)
+        .attr("y1", y_top)
+        .attr("x2", x("May") + x.bandwidth()/2 )
+        .attr("y2", y_top)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",  x("Mar") + x.bandwidth()/2 + 5)
+        .attr("y", y_top - 10)
+        .text("Lock-down started");
+
+    svg.append("line")
+        .attr("x1", x("May"))
+        .attr("y1", y(0))
+        .attr("x2",  x("May"))
+        .attr("y2",  y_mid)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1", x("May"))
+        .attr("y1",  y_mid)
+        .attr("x2", x("Sep") + x.bandwidth()/2 )
+        .attr("y2",  y_mid)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",  x("May") + 5)
+        .attr("y",  y_mid - 10)
+        .text("All 50 US states reported death cases by April 15");
+    
+    svg.append("line")
+        .attr("x1", x("Jul") + x.bandwidth()/2)
+        .attr("y1", y(0))
+        .attr("x2", x("Jul") + x.bandwidth()/2)
+        .attr("y2", y_bottom)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1", x("Jul") + x.bandwidth()/2)
+        .attr("y1", y_bottom)
+        .attr("x2", x("Sep") + x.bandwidth()/2 )
+        .attr("y2", y_bottom)
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",   x("Jul") + x.bandwidth()/2 + 5)
+        .attr("y", y_bottom - 10)
+        .text("Lock-down ended");
+    
     // Add legend
     svg.append("rect")
         .attr("height", 20)
