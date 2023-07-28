@@ -81,6 +81,7 @@
 </div>
 <div id="fullYearArea">
     <div id="fullYearChart" class="center"></div>
+    <div id="fullYearLowerChart" class="center"></div>
 </div>
 <div id="byMonthArea">
     <select id="monthDropdown" >
@@ -157,16 +158,16 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 // const data_all = [
 //     {month_name: "Jan", death: 0, hospitalized: 0, positive: 0},
 //     {month_name: "Feb", death: 1, hospitalized: 2, positive: 2},
-//     {month_name: "Mar", death: 2, hospitalized: 20, positive: 40},
-//     {month_name: "Apr", death: 3, hospitalized: 40, positive: 150},
-//     {month_name: "May", death: 4, hospitalized: 50, positive: 250},
-//     {month_name: "Jun", death: 5, hospitalized: 60, positive: 300},
-//     {month_name: "Jul", death: 6, hospitalized: 70, positive: 350},
-//     {month_name: "Aug", death: 7, hospitalized: 80, positive: 450},
-//     {month_name: "Sep", death: 8.12312312312312, hospitalized: 70, positive: 550},
-//     {month_name: "Oct", death: 9, hospitalized: 60, positive: 550},
-//     {month_name: "Nov", death: 10, hospitalized: 80, positive: 550},
-//     {month_name: "Dec", death: 11, hospitalized: 70, positive: 550}
+//     {month_name: "Mar", death: 2, hospitalized: 4, positive: 40},
+//     {month_name: "Apr", death: 3, hospitalized: 6, positive: 150},
+//     {month_name: "May", death: 4, hospitalized: 2, positive: 250},
+//     {month_name: "Jun", death: 5, hospitalized: 17, positive: 300},
+//     {month_name: "Jul", death: 6, hospitalized: 20, positive: 350},
+//     {month_name: "Aug", death: 7, hospitalized: 12, positive: 450},
+//     {month_name: "Sep", death: 8.12312312312312, hospitalized: 16, positive: 550},
+//     {month_name: "Oct", death: 9, hospitalized: 19, positive: 550},
+//     {month_name: "Nov", death: 10, hospitalized: 15, positive: 550},
+//     {month_name: "Dec", death: 11, hospitalized: 2, positive: 550}
 // ]
 
 
@@ -297,6 +298,7 @@ d3.select("#byMonthStateButton").on("click", function () {
 
 // Onload display the charts
 displayFullYearChart();
+displayFullYearLowerChart();
 displayMonthChart();
 displayStateChart("Alaska");
 displayMonthStateChart();
@@ -637,7 +639,79 @@ function displayFullYearChart () {
          .on("click", function(event, d) {
             monthDrillDown(d.month_name);
         });
+    // Add annotation
+    // Add an Annotation in between April and May, which is a vertical line
+    // On top of the line is a horizontal line
+    // On top of the horizontal line is a text
+    svg.append("line")
+        .attr("x1", x("Mar") + x.bandwidth()/2)
+        .attr("y1", y(0))
+        .attr("x2",  x("Mar") + x.bandwidth()/2)
+        .attr("y2", y(550))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1",  x("Mar") + x.bandwidth()/2)
+        .attr("y1", y(550))
+        .attr("x2", x("May") + x.bandwidth()/2 )
+        .attr("y2", y(550))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",  x("Mar") + x.bandwidth()/2 + 5)
+        .attr("y", y(550) - 10)
+        .text("Lock-down started");
+
+    svg.append("line")
+        .attr("x1", x("May"))
+        .attr("y1", y(0))
+        .attr("x2",  x("May"))
+        .attr("y2", y(500))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1", x("May"))
+        .attr("y1", y(500))
+        .attr("x2", x("Sep") + x.bandwidth()/2 )
+        .attr("y2", y(500))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",  x("May") + 5)
+        .attr("y", y(500) - 10)
+        .text("All 50 US states reported death cases by April 15");
     
+    svg.append("line")
+        .attr("x1", x("Jul") + x.bandwidth()/2)
+        .attr("y1", y(0))
+        .attr("x2", x("Jul") + x.bandwidth()/2)
+        .attr("y2", y(450))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1", x("Jul") + x.bandwidth()/2)
+        .attr("y1", y(450))
+        .attr("x2", x("Sep") + x.bandwidth()/2 )
+        .attr("y2", y(450))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",   x("Jul") + x.bandwidth()/2 + 5)
+        .attr("y", y(450) - 10)
+        .text("Lock-down ended");
+
     // Add legend
     svg.append("circle")
         .attr("r", 6)
@@ -678,9 +752,302 @@ function displayFullYearChart () {
         .attr("x", width - marginRight + 40)
         .attr("y", marginTop + 63)
         .text("Positive");
-
+    
     
     fullYearChart.append(svg.node());
+};
+
+function displayFullYearLowerChart () {
+    d3.select("#fullYearArea").style("display", "block");
+    d3.select("#byMonthArea").style("display", "none");
+    d3.select("#byStateArea").style("display", "none");
+    d3.select("#byMonthStateArea").style("display", "none");
+
+    // first empty the fullYearChart
+    d3.select("#fullYearLowerChart").selectAll("*").remove();
+    const marginTop = 10;
+
+    // Declare the x (horizontal position) scale.
+    const x = d3.scaleBand()
+        .domain(months)
+        .range([marginLeft, width - marginRight]);
+    const y_max = 30; // Milions
+    // Declare the y (vertical position) scale.
+    const y = d3.scaleLinear()
+        .domain([0, y_max])
+        .range([height - marginBottom, marginTop]);
+
+    // Create the SVG container.
+    const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Add the x-axis.
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x));
+    // Add x-axis label
+    svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", (width - marginRight)/2 + 50)
+        .attr("y", height - marginBottom + 40)
+        .attr("font-size", "15px")
+        .text("Month");
+
+    // Add the y-axis.
+    svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y));
+    // Add y-axis label
+    svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -(height/3))
+        .attr("y", marginLeft - 50)
+        .attr("font-size", "15px")
+        .attr("transform", "rotate(-90)")
+        .text("Number of cases (millions)");
+
+    // Add line for death
+    svg.append("path")
+        .datum(data_all)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+            .x(function(d) { return x(d.month_name) + x.bandwidth()/2 })
+            .y(function(d) { return y(d.death) })
+        );
+    // Add circle for death
+    svg.selectAll("dot")
+        .data(data_all)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) { return x(d.month_name) + x.bandwidth()/2 })
+        .attr("cy", function(d) { return y(d.death) })
+        .attr("r", 6)
+        .attr("fill", "red")
+                // Add tooltip when mouse over any circle
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the circle
+        .on("mouseover", function(event, d){
+            // Change pointer to hand
+            d3.select(this).style("cursor", "pointer");
+            svg.append("rect")
+                .attr("height", 75)
+                .attr("width",145)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) +40)
+                .attr("y", y(d.death) - 30)
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death) -10))
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death)+5))
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.death)+20))
+                .text(`Death: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        })
+        // On click, drill down to the month chart
+        .on("click", function(event, d) {
+            monthDrillDown(d.month_name);
+        });
+    
+    // Add line for hospitalized
+    svg.append("path")
+        .datum(data_all)
+        .attr("fill", "none")
+        .attr("stroke", "orange")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.line()
+            .x(function(d) { return x(d.month_name) + x.bandwidth()/2 })
+            .y(function(d) { return y(d.hospitalized) })
+        );
+    // Add circle for hospitalized
+    svg.selectAll("dot")
+        .data(data_all)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) { return x(d.month_name) + x.bandwidth()/2 })
+        .attr("cy", function(d) { return y(d.hospitalized) })
+        .attr("r", 6)
+        .attr("fill", "orange")
+        // Add tooltip when mouse over any circle
+        // Tool tip is the sum of positive, hospitalized and death
+        // Tool tip is positioned right on top of the circle
+        .on("mouseover", function(event, d){
+            // Change pointer to hand
+            d3.select(this).style("cursor", "pointer");
+            svg.append("rect")
+                .attr("height", 75)
+                .attr("width",145)
+                .attr("id", "tooltip")
+                .attr("x", x(d.month_name) +40)
+                .attr("y", y(d.hospitalized)-30)
+                .attr("fill", "white")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.hospitalized) -10))
+                .text(`Month: ${d.month_name}`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "orange")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y(d.hospitalized)+20))
+                .text(`Hospitalized: ${d.hospitalized.toFixed(2)} millions`);
+            svg.append("text")
+                .attr("class", "tooltiptext")
+                .attr("fill", "red")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "10px")
+                .attr("font-weight", "bold")
+                .attr("x", x(d.month_name) + 45)
+                .attr("y", (y( d.hospitalized)+5))
+                .text(`Death: ${d.death.toFixed(2)} millions`);
+        }).on("mouseout", function(event, d) {
+            d3.select("#tooltip").remove();
+            d3.selectAll(".tooltiptext").remove();
+        })
+         // On click, drill down to the month chart
+         .on("click", function(event, d) {
+            monthDrillDown(d.month_name);
+        });
+    // Add an Annotation in between April and May, which is a vertical line
+    // On top of the line is a horizontal line
+    // On top of the horizontal line is a text
+    svg.append("line")
+        .attr("x1", x("Mar") + x.bandwidth()/2)
+        .attr("y1", y(0))
+        .attr("x2",  x("Mar") + x.bandwidth()/2)
+        .attr("y2", y(28))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1",  x("Mar") + x.bandwidth()/2)
+        .attr("y1", y(28))
+        .attr("x2", x("May") + x.bandwidth()/2 )
+        .attr("y2", y(28))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",  x("Mar") + x.bandwidth()/2 + 5)
+        .attr("y", y(28) - 10)
+        .text("Lock-down started");
+
+    svg.append("line")
+        .attr("x1", x("May"))
+        .attr("y1", y(0))
+        .attr("x2",  x("May"))
+        .attr("y2", y(26))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1", x("May"))
+        .attr("y1", y(26))
+        .attr("x2", x("Sep") + x.bandwidth()/2 )
+        .attr("y2", y(26))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",  x("May") + 5)
+        .attr("y", y(26) - 10)
+        .text("All 50 US states reported death cases by April 15");
+    
+    svg.append("line")
+        .attr("x1", x("Jul") + x.bandwidth()/2)
+        .attr("y1", y(0))
+        .attr("x2", x("Jul") + x.bandwidth()/2)
+        .attr("y2", y(24))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("line")
+        .attr("x1", x("Jul") + x.bandwidth()/2)
+        .attr("y1", y(24))
+        .attr("x2", x("Sep") + x.bandwidth()/2 )
+        .attr("y2", y(24))
+        .attr("stroke-width", 1)
+        .attr("stroke", "black");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("x",   x("Jul") + x.bandwidth()/2 + 5)
+        .attr("y", y(24) - 10)
+        .text("Lock-down ended");
+  
+    // Add legend
+    svg.append("circle")
+        .attr("r", 6)
+        .attr("cx", width - marginRight + 20)
+        .attr("cy", marginTop + 20)
+        .attr("fill", "red");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 40)
+        .attr("y", marginTop + 23)
+        .text("Deaths");
+    svg.append("circle")
+        .attr("r", 6)
+        .attr("cx", width - marginRight + 20)
+        .attr("cy", marginTop + 40)
+        .attr("fill", "orange");
+    svg.append("text")
+        .attr("fill", "black")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "10px")
+        .attr("font-weight", "bold")
+        .attr("x", width - marginRight + 40)
+        .attr("y", marginTop + 43)
+        .text("Hospitalized");
+    fullYearLowerChart.append(svg.node());
 };
 
 function displayMonthChart (input_month_filter) {
@@ -1406,7 +1773,7 @@ d3.select("#byMonthStateChart").selectAll("*").remove();
             .attr("x", width/2 - 80)
             .attr("y", height/7 + 20)
             // Add the sum of positive, hospitalized and death, capitialize the first letter
-            .text(`${d.data.key.charAt[0].toUpperCase()}: ${d.data.value.toFixed(2)} millions (${(d.data.value/data_sum*100).toFixed(2)}%)`);
+            .text(`${d.data.key[0].toUpperCase() + d.data.key.slice(1)}: ${d.data.value.toFixed(2)} millions (${(d.data.value/data_sum*100).toFixed(2)}%)`);
     }).on("mouseout", function(event, d) {
         // no stroke
         d3.select(this).attr("stroke", "none");
