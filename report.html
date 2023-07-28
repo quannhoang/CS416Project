@@ -2,9 +2,41 @@
 <head>
 </head>
 <style>
+    #title {
+        width: 1040px;
+        height:70px;
+        font-size: 50px;
+        font-weight: bold;
+        text-align: center;
+        padding-top: 10px;
+        border-bottom: 1px solid black;
+    }
     #intro {
-        width: 100%;
-        height: 300px;
+        padding-top: 20px;
+        width: 1040px;
+        height: 140px;
+    }
+    #chartTitle {
+        width: 1040px;
+        height: 40px;
+        font-size: 20px;
+        font-weight: bold;
+        padding-top: 10px;
+    }
+    #chartDescription{
+        width: 1040px;
+
+    }
+    #chartInstructionTitle{
+        width: 1040px;
+        font-size: 20px;
+        font-weight: bold;
+        padding-top: 10px;
+    }
+    #chartInstruction{
+        border-bottom: 1px solid black;
+        padding-top: 10px;
+        padding-bottom: 20px;
     }
     #monthDropdown {
         position: relative;
@@ -29,6 +61,10 @@
         top: 60px;
         left: 80px;
         width: 200px;
+    }
+
+    #navigation {
+        padding-top: 20px;
     }
 
     #navigation button {
@@ -68,11 +104,17 @@
         border-radius: 10px;
     }
 </style>
+<div id="title">
+US Corona Virus cases in 2020
+</div>
 <div id="intro">
-
+    The below visualizations of USA COVID-19 cases in 2020 offers a comprehensive and interactive tool for understanding the progression of the pandemic. By examining data from multiple perspectives, we can gain valuable insights into the varying impact of the virus across states and months. The key dates, including lockdown initiation (approximation), nationwide death reports, and lockdown conclusion (approximation), serve as crucial milestones in the narrative, providing context to the data analysis. 
+    <p>Data source: <a href="https://covidtracking.com/data/download">https://covidtracking.com/data/download</a></p>
 </div>
-
-</div>
+<div id="chartTitle">US COVID-19 Cases in 2020</div>
+<div id="chartDescription"></div>
+<div id="chartInstructionTitle">Instructions:</div>
+<div id="chartInstruction"></div>
 <div id="navigation">
     <button id="fullYearButton" class="selected">Full Year</button>
     <button id="byMonthButton">By Month</button>
@@ -189,6 +231,21 @@ data_all.forEach(function(d) {
     d.positive = d.positive / 1000000;
 });
 
+const fullYearTitle = "US COVID-19 Cases Full Year Trend";
+const fullYearDescription = "The Full Year chart displays the progression of COVID-19 cases over time, focusing on three critical categories: positive cases, hospitalized cases, and death cases. The X-axis represents months, while the Y-axis indicates the number of cases in millions. This line chart allows us to observe the changing patterns and trends across the year, providing insights into the overall impact of the virus nationwide. The second chart displays only death and hospitalized cases to provide a better perspective without the positive cases.";
+const fullYearInstruction = "Hover over the data points to view the number of cases for each category. Click on the data points to drill down to the By Month chart.";
+
+const byMonthTitle = "US COVID-19 Cases by Month";
+const byMonthDescription = "The By Month chart displays the progression of COVID-19 cases over time, focusing on three critical categories: positive cases, hospitalized cases, and death cases. The X-axis represents the US states or territories, while the Y-axis indicates the number of cases in millions. The number of case for each state are sorted in ascending order.";
+const byMonthInstruction = "Select month using the dropdown. Hover over the data points to view the number of cases for each category. Click on the data points to drill down to the By State chart.";
+
+const byStateTitle = "US COVID-19 Cases by State";
+const byStateDescription = "The By State chart displays the progression of COVID-19 cases over time, focusing on three critical categories: positive cases, hospitalized cases, and death cases. The X-axis represents months, while the Y-axis indicates the number of cases in millions.";
+const byStateInstruction = "Select state using the dropdown. Hover over the data points to view the number of cases for each category. Click on the data points to drill down to the By State and Month chart.";
+
+const byMonthStateTitle = "US COVID-19 Cases by State and Month";
+const byMonthStateDescription = "The By State and Month chart is represented as a pie chart, providing a more granular view of the three case categories for each state in a selected month. By using the dual drop-down menus, users can investigate the percentage distribution of positive, hospitalized, and death cases within a state for a specific month. This chart enables a detailed breakdown, allowing users to assess the severity of the pandemic in different states during different periods.";
+const byMonthStateInstruction = "Select state and month using the dropdowns. Hover over the pie chart to view the percentage of cases for each category.";
 
 // On change month_filter, update the chart
 d3.select("#monthDropdown")
@@ -256,6 +313,10 @@ d3.select("#fullYearButton").on("click", function() {
     d3.select("#byMonthButton").attr("class", "");
     d3.select("#byMonthStateButton").attr("class", "");
 
+    d3.select("#chartTitle").text(fullYearTitle);
+    d3.select("#chartDescription").text(fullYearDescription);
+    d3.select("#chartInstruction").text(fullYearInstruction);
+
 })
 
 d3.select("#byMonthButton").on("click", function() {
@@ -268,6 +329,10 @@ d3.select("#byMonthButton").on("click", function() {
     d3.select("#byMonthButton").attr("class", "selected");
     d3.select("#byStateButton").attr("class", "");
     d3.select("#byMonthStateButton").attr("class", "");
+
+    d3.select("#chartTitle").text(byMonthTitle);
+    d3.select("#chartDescription").text(byMonthDescription);
+    d3.select("#chartInstruction").text(byMonthInstruction);
 })
 
 
@@ -281,6 +346,11 @@ d3.select("#byStateButton").on("click", function () {
     d3.select("#fullYearButton").attr("class", "");
     d3.select("#byMonthButton").attr("class", "");
     d3.select("#byMonthStateButton").attr("class", "");
+
+    d3.select("#chartTitle").text(byStateTitle);
+    d3.select("#chartDescription").text(byStateDescription);
+    d3.select("#chartInstruction").text(byStateInstruction);
+
 });
 
 d3.select("#byMonthStateButton").on("click", function () {
@@ -293,6 +363,10 @@ d3.select("#byMonthStateButton").on("click", function () {
     d3.select("#fullYearButton").attr("class", "");
     d3.select("#byMonthButton").attr("class", "");
     d3.select("#byMonthStateButton").attr("class", "selected");
+
+    d3.select("#chartTitle").text(byMonthStateTitle);
+    d3.select("#chartDescription").text(byMonthStateDescription);
+    d3.select("#chartInstruction").text(byMonthStateInstruction);
 });
 
 
@@ -315,6 +389,11 @@ function monthDrillDown(month_name) {
     // Change the monthDropdown to the selected month
     d3.select("#monthDropdown").property("value", month_name);
     // Display the chart for the selected month
+
+    d3.select("#chartTitle").text(byMonthTitle);
+    d3.select("#chartDescription").text(byMonthDescription);
+    d3.select("#chartInstruction").text(byMonthInstruction);
+
     displayMonthChart(month_name);   
 }
 
@@ -329,6 +408,11 @@ function stateDrillDown(state_name) {
     // Change the stateDropdown to the selected state
     d3.select("#stateDropdown").property("value", state_name);
     // Display the chart for the selected state
+
+    d3.select("#chartTitle").text(byStateTitle);
+    d3.select("#chartDescription").text(byStateDescription);
+    d3.select("#chartInstruction").text(byStateInstruction);
+
     displayStateChart(state_name);
 }
 
@@ -347,11 +431,20 @@ function monthStateDrillDown(month_name, state_name){
     d3.select("#stateDropdown1").property("value", state_name);
     // Change the monthDropdown to the selected month
     d3.select("#monthDropdown1").property("value", month_name);
+
+    d3.select("#chartTitle").text(byMonthStateTitle);
+    d3.select("#chartDescription").text(byMonthStateDescription);
+    d3.select("#chartInstruction").text(byMonthStateInstruction);
+
     // Display the chart for the selected state
     displayMonthStateChart(month_name, state_name);
 }
 
 function displayFullYearChart () {
+    d3.select("#chartTitle").text(fullYearTitle);
+    d3.select("#chartDescription").text(fullYearDescription);
+    d3.select("#chartInstruction").text(fullYearInstruction);
+
     d3.select("#fullYearArea").style("display", "block");
     d3.select("#byMonthArea").style("display", "none");
     d3.select("#byStateArea").style("display", "none");
@@ -1051,6 +1144,7 @@ function displayFullYearLowerChart () {
 };
 
 function displayMonthChart (input_month_filter) {
+
     // first empty the byMonthChart
     d3.select("#byMonthChart").selectAll("*").remove();
     let month_filter
